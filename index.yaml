@@ -1,0 +1,117 @@
+openapi: '3.0.0'
+info:
+  version: '1.0.0'
+  title: 'Scalable Express API'
+  description: >
+    A simple scalable and reliable API built with Express.js and PM2 cluster mode.
+    This API demonstrates load balancing, rate limiting, and health checking.
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      description: >
+        Returns server health status and the process ID (PID) handling the request.
+        This endpoint is used to verify load balancing across PM2 cluster instances.
+      responses:
+        '200':
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/users:
+    get:
+      summary: Get users
+      description: >
+        Returns a list of users and the process ID (PID) of the server
+        that handled the request.
+      responses:
+        '200':
+          description: Successful request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersResponse'
+        '429':
+          description: Too many requests (rate limit exceeded)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - server
+      properties:
+        status:
+          type: string
+          example: OK
+        server:
+          type: integer
+          description: Process ID (PID) of the Node.js instance
+          example: 12345
+
+    UsersResponse:
+      type: object
+      required:
+        - message
+        - serverPid
+        - data
+      properties:
+        message:
+          type: string
+          example: Request berhasil
+        serverPid:
+          type: integer
+          description: Process ID (PID) of the Node.js instance
+          example: 12345
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Rivaldo
+
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Too many requests, please try again later.
+
+security: []
